@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OrderJaa — Panel Admin CMS</title>
+  <link rel="stylesheet" href="/css/admin.css" />
+</head>
+<body>
+  <!-- Login Screen -->
+  <section id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <div class="login-logo">🔐</div>
+      <h1>Panel Admin OrderJaa</h1>
+      <p class="muted">Masukkan kata laluan admin untuk mengurus pesanan dan menu.</p>
+      <div id="loginError" class="alert-error hidden"></div>
+      <form id="loginForm">
+        <label class="field">
+          <span>Kata Laluan Admin</span>
+          <input id="passwordInput" type="password" placeholder="Masukkan ADMIN_PASSWORD" required />
+        </label>
+        <button id="loginBtn" type="submit" class="btn-primary btn-full">Log Masuk</button>
+      </form>
+      <a href="/" class="back-link">← Kembali ke Skrin Kiosk</a>
+    </div>
+  </section>
+
+  <!-- Admin Dashboard -->
+  <div id="adminApp" class="hidden">
+    <header class="admin-header">
+      <div class="header-left">
+        <span class="brand-badge">🍽️ OrderJaa CMS</span>
+        <span id="adminStoreStatus" class="pill pill-open">Kedai Dibuka</span>
+      </div>
+      <div class="header-right">
+        <a href="/" target="_blank" class="btn-outline">Lihat Kiosk ↗</a>
+        <button id="refreshBtn" class="btn-outline" type="button">🔄 Muat Semula</button>
+        <button id="logoutBtn" class="btn-ghost" type="button">Log Keluar</button>
+      </div>
+    </header>
+
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-tab="orders" type="button">🍳 Pesanan Dapur</button>
+      <button class="tab" data-tab="menu" type="button">🍔 Urus Menu</button>
+      <button class="tab" data-tab="categories" type="button">📂 Kategori</button>
+      <button class="tab" data-tab="settings" type="button">🏪 Tetapan Kedai</button>
+    </nav>
+
+    <main class="container">
+      <!-- Tab: Orders -->
+      <section id="tab-orders" class="tab-panel">
+        <div class="panel-toolbar">
+          <h2>Pesanan Dapur</h2>
+          <div class="filter-group" id="orderFilters">
+            <button type="button" class="filter-btn active" data-status="active">Aktif</button>
+            <button type="button" class="filter-btn" data-status="all">Semua</button>
+            <button type="button" class="filter-btn" data-status="pending">Menunggu</button>
+            <button type="button" class="filter-btn" data-status="preparing">Disediakan</button>
+            <button type="button" class="filter-btn" data-status="ready">Sedia</button>
+            <button type="button" class="filter-btn" data-status="completed">Selesai</button>
+          </div>
+        </div>
+        <div id="ordersGrid" class="orders-grid"></div>
+      </section>
+
+      <!-- Tab: Menu -->
+      <section id="tab-menu" class="tab-panel hidden">
+        <div class="panel-toolbar">
+          <h2>Senarai Menu (<span id="menuCount">0</span>)</h2>
+          <button id="addMenuBtn" class="btn-primary" type="button">+ Tambah Menu Baharu</button>
+        </div>
+        <div id="menuTableWrap" class="card">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Kategori</th>
+                <th>Tukar Harga Cepat (RM)</th>
+                <th>Status</th>
+                <th>Tindakan</th>
+              </tr>
+            </thead>
+            <tbody id="menuTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Tab: Categories -->
+      <section id="tab-categories" class="tab-panel hidden">
+        <div class="panel-toolbar">
+          <h2>Kategori Menu</h2>
+          <button id="addCategoryBtn" class="btn-primary" type="button">+ Tambah Kategori</button>
+        </div>
+        <div class="card">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Emoji & Nama</th>
+                <th>Susunan</th>
+                <th>Bil. Item</th>
+                <th>Status</th>
+                <th>Tindakan</th>
+              </tr>
+            </thead>
+            <tbody id="categoriesTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Tab: Settings -->
+      <section id="tab-settings" class="tab-panel hidden">
+        <div class="panel-toolbar">
+          <h2>Tetapan Kedai</h2>
+        </div>
+        <form id="settingsForm" class="card form-card">
+          <label class="field">
+            <span>Nama Kedai</span>
+            <input id="settingStoreName" type="text" maxlength="80" required />
+          </label>
+          <label class="field">
+            <span>Teks Banner Kiosk</span>
+            <input id="settingBannerText" type="text" maxlength="200" />
+          </label>
+          <label class="switch-row">
+            <input id="settingIsOpen" type="checkbox" />
+            <span>Kedai Dibuka (benarkan pelanggan membuat pesanan di kiosk)</span>
+          </label>
+          <div>
+            <button type="submit" class="btn-primary">Simpan Tetapan</button>
+          </div>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <!-- Menu Item Modal -->
+  <div id="itemModal" class="modal hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="itemModalTitle">Tambah Menu</h3>
+        <button id="closeItemModalBtn" class="btn-icon" type="button">✕</button>
+      </div>
+      <form id="itemForm" class="modal-form">
+        <input type="hidden" id="itemId" />
+        <input type="hidden" id="itemImageId" />
+
+        <div class="form-grid">
+          <label class="field">
+            <span>Nama Menu *</span>
+            <input id="itemName" type="text" maxlength="80" required />
+          </label>
+          <label class="field">
+            <span>Kategori *</span>
+            <select id="itemCategory" required></select>
+          </label>
+        </div>
+
+        <div class="form-grid">
+          <label class="field">
+            <span>Harga (RM) *</span>
+            <input id="itemPriceRM" type="number" step="0.05" min="0" required />
+          </label>
+          <label class="field">
+            <span>Emoji Fallback</span>
+            <input id="itemEmoji" type="text" maxlength="8" placeholder="🍽️" />
+          </label>
+        </div>
+
+        <label class="field">
+          <span>Penerangan</span>
+          <textarea id="itemDesc" rows="2" maxlength="300"></textarea>
+        </label>
+
+        <div class="image-upload-box">
+          <div class="image-preview" id="itemImagePreview">🍽️</div>
+          <div class="image-upload-controls">
+            <label class="btn-outline upload-label">
+              📷 Pilih Gambar
+              <input id="itemImageFile" type="file" accept="image/*" hidden />
+            </label>
+            <button id="removeImageBtn" type="button" class="btn-text-danger hidden">Buang Gambar</button>
+            <small id="imageInfoText" class="muted">Dimampatkan automatik (&le; 480px, latar putih PNG, &lt; 95 KB).</small>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <label class="field">
+            <span>Susunan</span>
+            <input id="itemSortOrder" type="number" value="0" />
+          </label>
+          <label class="switch-row" style="margin-top:22px;">
+            <input id="itemIsActive" type="checkbox" checked />
+            <span>Aktif</span>
+          </label>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" id="cancelItemModalBtn" class="btn-outline">Batal</button>
+          <button type="submit" id="saveItemBtn" class="btn-primary">Simpan Menu</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Category Modal -->
+  <div id="categoryModal" class="modal hidden">
+    <div class="modal-card modal-sm">
+      <div class="modal-header">
+        <h3 id="catModalTitle">Tambah Kategori</h3>
+        <button id="closeCatModalBtn" class="btn-icon" type="button">✕</button>
+      </div>
+      <form id="categoryForm" class="modal-form">
+        <input type="hidden" id="catId" />
+        <label class="field">
+          <span>Nama Kategori *</span>
+          <input id="catName" type="text" maxlength="60" required />
+        </label>
+        <div class="form-grid">
+          <label class="field">
+            <span>Emoji</span>
+            <input id="catEmoji" type="text" maxlength="8" placeholder="🍽️" />
+          </label>
+          <label class="field">
+            <span>Susunan</span>
+            <input id="catSortOrder" type="number" value="0" />
+          </label>
+        </div>
+        <label class="switch-row">
+          <input id="catIsActive" type="checkbox" checked />
+          <span>Kategori Aktif</span>
+        </label>
+        <div class="modal-actions">
+          <button type="button" id="cancelCatModalBtn" class="btn-outline">Batal</button>
+          <button type="submit" class="btn-primary">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="/js/admin.js"></script>
+</body>
+</html>
